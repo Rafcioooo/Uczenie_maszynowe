@@ -1,0 +1,128 @@
+{
+  "data": {
+    "source": "C:\\Users\\EFAI3LAB0411\\Desktop\\Duszkiewicz\\MLP\\G2_S10__a09_spambase__v03.csv",
+    "rows": 1533,
+    "features": 56,
+    "classes": {
+      "0": 929,
+      "1": 604
+    },
+    "duplicates_found": 82,
+    "duplicates_removed": 0
+  },
+  "cv": {
+    "splits": 5,
+    "repeats": 10,
+    "total_splits": 50,
+    "epochs": 50,
+    "random_seed": 42,
+    "model_seed_base": 10000
+  },
+  "standardization": "StandardScaler fitted separately on each train fold",
+  "independent_test": false,
+  "test_size": null,
+  "show_plots": true,
+  "save_plots": false,
+  "base_mlp_params": {
+    "hidden_layer_sizes": [
+      20,
+      10
+    ],
+    "activation": "relu",
+    "solver": "adam",
+    "batch_size": "auto",
+    "learning_rate_init": 0.001,
+    "alpha": 0.0001,
+    "shuffle": true,
+    "momentum": 0.9,
+    "nesterovs_momentum": true
+  },
+  "experiments": {
+    "activations": [
+      {
+        "name": "identity",
+        "changes": {
+          "activation": "identity"
+        }
+      },
+      {
+        "name": "logistic",
+        "changes": {
+          "activation": "logistic"
+        }
+      },
+      {
+        "name": "tanh",
+        "changes": {
+          "activation": "tanh"
+        }
+      },
+      {
+        "name": "relu",
+        "changes": {
+          "activation": "relu"
+        }
+      }
+    ],
+    "solvers": [
+      {
+        "name": "adam",
+        "changes": {
+          "solver": "adam"
+        }
+      },
+      {
+        "name": "sgd_momentum",
+        "changes": {
+          "solver": "sgd",
+          "momentum": 0.9,
+          "nesterovs_momentum": true
+        }
+      },
+      {
+        "name": "sgd_plain",
+        "changes": {
+          "solver": "sgd",
+          "momentum": 0.0,
+          "nesterovs_momentum": false
+        }
+      }
+    ],
+    "architectures": [
+      {
+        "name": "(10,)",
+        "changes": {
+          "hidden_layer_sizes": [
+            10
+          ]
+        }
+      },
+      {
+        "name": "(20,)",
+        "changes": {
+          "hidden_layer_sizes": [
+            20
+          ]
+        }
+      },
+      {
+        "name": "(20, 10)",
+        "changes": {
+          "hidden_layer_sizes": [
+            20,
+            10
+          ]
+        }
+      },
+      {
+        "name": "(20, 20)",
+        "changes": {
+          "hidden_layer_sizes": [
+            20,
+            20
+          ]
+        }
+      }
+    ]
+  }
+}
