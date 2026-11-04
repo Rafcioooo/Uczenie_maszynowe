@@ -29,4 +29,6 @@ python svm_lab.py --csv inne.csv --target klasa   # inny zbiór
 ```
 
 Pełne uruchomienie trwa ok. 3 minuty (`--no-grid` pomija siatkę i skraca czas).
+Każdy wykres otwiera się w osobnym oknie zaraz po zakończeniu danego eksperymentu; program kończy się
+po zamknięciu wszystkich okien. Flaga `--no-show` wyłącza okna.
 Wyniki (wykresy PNG oraz tabele CSV) trafiają do katalogu `wyniki/`.

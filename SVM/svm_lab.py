@@ -4,7 +4,7 @@ Badanie zdolności uogólniania klasyfikatora SVC (scikit-learn) za pomocą
 powtarzanej, stratyfikowanej k-krotnej walidacji krzyżowej (n x k).
 
 Uruchomienie:
-    python svm_lab.py                         # zbiór Spambase w katalogu projektu
+    python svm_lab.py                         # zbiór Spambase (data/spambase.csv)
     python svm_lab.py --test-size 0.2         # + zadanie dodatkowe (zbiór testowy)
     python svm_lab.py --csv dane.csv --target klasa   # inny zbiór danych
 """
@@ -17,9 +17,6 @@ import warnings
 from dataclasses import dataclass, field
 from pathlib import Path
 
-import matplotlib
-
-matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -64,24 +61,7 @@ GRID_GAMMA = GAMMA_VALUES
 
 BASE_DIR = Path(__file__).resolve().parent
 OUT_DIR = BASE_DIR / "wyniki"
-
-
-def resolve_default_csv() -> Path:
-    """Wybiera istniejący plik danych w projekcie.
-
-    W repozytorium stosowany jest plik CSV w katalogu głównym, a nie w podkatalogu data/.
-    """
-    candidates = [
-        BASE_DIR / "data" / "spambase.csv",
-        BASE_DIR / "G2_S10__a09_spambase__v03.csv",
-    ]
-    for candidate in candidates:
-        if candidate.exists():
-            return candidate
-    return candidates[0]
-
-
-DEFAULT_CSV = resolve_default_csv()
+DEFAULT_CSV = BASE_DIR / "data" / "spambase.csv"
 DEFAULT_TARGET = "target"
 SPAMBASE_LABELS = {0: "nie-spam", 1: "spam"}
 
@@ -246,6 +226,23 @@ def run_experiment(configs: list[Config], cache: FoldCache, k: int, n: int, titl
 # ---------------------------------------------------------------------------
 # Wykresy
 # ---------------------------------------------------------------------------
+SHOW_PLOTS = True
+
+
+def show_figure(fig, fname: str) -> None:
+    """Zapisuje wykres do pliku i od razu wyświetla go w osobnym oknie.
+
+    Okno jest otwierane bez blokowania, więc kolejne eksperymenty liczą się dalej;
+    plt.pause() daje oknu czas na narysowanie się.
+    """
+    fig.savefig(OUT_DIR / fname, dpi=130)
+    if SHOW_PLOTS:
+        fig.canvas.manager.set_window_title(fname)
+        plt.show(block=False)
+        plt.pause(0.5)
+    else:
+        plt.close(fig)
+
 def plot_experiment(results: list[CVResult], title: str, xlabel: str, fname: str,
                     x_values=None, log_x: bool = False) -> None:
     labels = [r.config.name for r in results]
@@ -285,8 +282,7 @@ def plot_experiment(results: list[CVResult], title: str, xlabel: str, fname: str
         ax.grid(alpha=0.3)
 
     fig.tight_layout()
-    fig.savefig(OUT_DIR / fname, dpi=130)
-    plt.close(fig)
+    show_figure(fig, fname)
 
 
 def plot_grid(grid: dict[tuple[float, float], CVResult]) -> None:
@@ -317,8 +313,7 @@ def plot_grid(grid: dict[tuple[float, float], CVResult]) -> None:
                     color="white" if acc[i, j] < acc.max() - 0.1 else "black", fontsize=8)
     fig.colorbar(im, ax=ax)
     fig.tight_layout()
-    fig.savefig(OUT_DIR / "exp4_siatka_C_gamma.png", dpi=130)
-    plt.close(fig)
+    show_figure(fig, "exp4_siatka_C_gamma.png")
 
 
 # ---------------------------------------------------------------------------
@@ -326,15 +321,21 @@ def plot_grid(grid: dict[tuple[float, float], CVResult]) -> None:
 # ---------------------------------------------------------------------------
 def main() -> None:
     parser = argparse.ArgumentParser(description="Laboratorium SVM: badanie zdolności uogólniania SVC")
-    parser.add_argument("--csv", default=str(DEFAULT_CSV), help="ścieżka do pliku CSV (domyślnie: plik Spambase w katalogu projektu)")
+    parser.add_argument("--csv", default=str(DEFAULT_CSV), help="ścieżka do pliku CSV (domyślnie: data/spambase.csv)")
     parser.add_argument("--target", default=DEFAULT_TARGET, help="nazwa kolumny z etykietą klasy")
     parser.add_argument("--k", type=int, default=K_FOLDS, help="liczba foldów k")
     parser.add_argument("--n", type=int, default=N_REPEATS, help="liczba powtórzeń n")
     parser.add_argument("--test-size", type=float, default=0.0,
                         help="część danych na niezależny zbiór testowy, np. 0.2 (zadanie dodatkowe)")
     parser.add_argument("--no-grid", action="store_true", help="pomiń siatkę (C, γ)")
+    parser.add_argument("--no-show", action="store_true", help="tylko zapisuj wykresy do plików, bez okien")
     args = parser.parse_args()
     k, n = args.k, args.n
+
+    global SHOW_PLOTS
+    SHOW_PLOTS = not args.no_show
+    if not SHOW_PLOTS:
+        plt.switch_backend("Agg")
 
     OUT_DIR.mkdir(exist_ok=True)
     X, y_raw, name = load_data(args.csv, args.target)
@@ -469,10 +470,12 @@ def main() -> None:
         ConfusionMatrixDisplay(cm, display_labels=model.classes_).plot(ax=ax, colorbar=False)
         ax.set_title(f"Zbiór testowy: {best.config.name}")
         fig.tight_layout()
-        fig.savefig(OUT_DIR / "macierz_pomylek_test.png", dpi=130)
-        plt.close(fig)
+        show_figure(fig, "macierz_pomylek_test.png")
 
     print(f"\nWykresy i tabele zapisano w katalogu: {OUT_DIR.resolve()}")
+    if SHOW_PLOTS:
+        print("Zamknij okna z wykresami, aby zakończyć program.")
+        plt.show()
 
 
 if __name__ == "__main__":
